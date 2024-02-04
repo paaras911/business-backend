@@ -2,7 +2,6 @@ package com.mybusiness.backend.stock.adapter.out.rest;
 
 import com.mybusiness.backend.stock.domain.Company;
 import com.mybusiness.backend.stock.port.RetrieveCompaniesPort;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -28,6 +27,12 @@ public class CompaniesAdapter implements RetrieveCompaniesPort {
                                 .queryParam("keywords", wildcard)
                                 .queryParam("apikey", apiKey)
                                 .build())
-                        .retrieve().bodyToMono(List.class).block();
+                        .retrieve().bodyToMono(BestMatchesDto.class).map(this::mapToDomain).block();
+    }
+
+    private List<Company> mapToDomain(final BestMatchesDto dto) {
+        return dto.getBestMatches().stream()
+                .map(companyDto -> new Company(companyDto.name,companyDto.type,companyDto.region,companyDto.matchScore))
+                .toList();
     }
 }
